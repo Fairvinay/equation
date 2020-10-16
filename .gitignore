@@ -10,6 +10,12 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
+#Ecipse setttings 
+.settings
+bin
+
+
+
 # Package Files #
 *.jar
 *.war

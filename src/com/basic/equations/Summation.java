@@ -1,6 +1,6 @@
 package com.basic.equations;
 
-import java.util.PriorityQueue;
+import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Stack;
 import java.util.regex.Matcher;
@@ -12,6 +12,8 @@ import javax.script.ScriptException;
 
 public class Summation {
 
+	static Stack<String> brackHolder = new Stack<>();
+	static Queue<String> expQueue = new LinkedList<>();
 	public static void main(String args[]) {
 
 		if (args.length < 1) {
@@ -24,6 +26,12 @@ public class Summation {
 		} else {
 			System.out.println("Equaton is nit valid ");
 		}
+		if(!expQueue.isEmpty()) {
+			System.out.println(" result "+args[0]+ " "+expQueue.peek());
+		}
+		else if(!brackHolder.isEmpty()) {
+			System.out.println(" result "+args[0]+ " "+brackHolder.peek());
+		}
 
 	}
 
@@ -33,8 +41,7 @@ public class Summation {
 
 		Matcher mt = m.matcher(eq);
 		boolean valid = false;
-		Stack<String> brackHolder = new Stack<>();
-		Queue<String> expQueue = new PriorityQueue<>();
+		
 		if (!eq.contains("[a-zA-Z]+")) {
 			if (mt.find()) {
 
@@ -42,7 +49,7 @@ public class Summation {
 				for (int i = 0; i < eq.length(); i++) {
 					switch (eq.charAt(i)) {
 					case '(':
-						brackHolder.add("(");
+						pushQExpOnStack(expQueue,"(");
 						break;
 					case ')':
 						evaluateQueue(expQueue);
@@ -93,32 +100,60 @@ public class Summation {
 		return valid;
 	}
 
+	private static void pushQExpOnStack(Queue<String> expQueue2, String string) {
+		String strExp ="";
+		while (!expQueue2.isEmpty()) {
+			 brackHolder.add(expQueue2.poll());
+		}
+		
+		brackHolder.add(string);
+	}
+
 	private static void evaluateQueue(Queue<String> expQueue) {
-
-		String strVal = expQueue.toString();
-
+		String strVal ="";
+		while (!expQueue.isEmpty()) {
+			strVal += expQueue.poll();
+		}
+		if(!strVal.isEmpty() ) {
 		ScriptEngineManager manager = new ScriptEngineManager();
 		ScriptEngine engine = manager.getEngineByName("js");
 		Integer result = null; 
 		Integer resultPlus = null; Integer resultStar = null;
 		if (strVal.indexOf("+") > -1) {
 			try {
+				
 				resultPlus = (Integer) engine.eval(strVal);
+				System.out.println(strVal +" = " +resultPlus );
 			} catch (ScriptException e) {
 				System.out.println("cannot evaluate ");
 			}
 			// calculate with * 
 			String strVal2 = strVal.replace('+', '*');
 			try {
-				resultStar = (Integer) engine.eval(strVal);
+				resultStar = (Integer) engine.eval(strVal2);
+				System.out.println(strVal2  +" = " +resultStar );
 			} catch (ScriptException e) {
 				System.out.println("cannot evaluate ");
 			}
 			result = resultPlus.intValue() >  resultStar.intValue()? resultPlus: resultStar;
 			
+			expQueue.clear();
+			expQueue.add(result.intValue()+"");
 			
 		}
-
+       // push the queue result to stack till opening ( found 
+		while(brackHolder.peek() == "(") {
+			brackHolder.pop();
+			brackHolder.push(expQueue.poll());
+		}
+	  }
+	  else {while(!brackHolder.isEmpty() && brackHolder.peek() != "(") {
+		  expQueue.add(brackHolder.pop());
+	     }
+	    if(!expQueue.isEmpty()) {
+	    	evaluateQueue(expQueue);
+	    }
+	 }
 	}
 
 	private static void evaluateStack(Stack a) {
