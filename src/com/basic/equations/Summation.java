@@ -14,6 +14,7 @@ public class Summation {
 
 	static Stack<String> brackHolder = new Stack<>();
 	static Queue<String> expQueue = new LinkedList<>();
+	
 	public static void main(String args[]) {
 
 		if (args.length < 1) {
